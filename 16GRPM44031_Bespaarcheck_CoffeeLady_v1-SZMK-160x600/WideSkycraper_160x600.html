@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="authoring-tool" content="Adobe_Animate_CC"> 
+
+		<!-- Sizmek -->
+		
+
+		<!-- createjs -->
+		<script src="https://code.createjs.com/createjs-2015.11.26.min.js"></script>
+			
+		<!-- Greensock -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TimelineLite.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TweenLite.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/latest/easing/EasePack.min.js"></script>
+
+		<!-- Pervorm -->
+		<script src="js/pervorm/tools.js"></script>
+		<script src="js/banner.js"></script>
+
+
+		 <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+
+		<link rel="stylesheet" type="text/css" href="css/bannerstyle.css">
+
+		<script>
+			/* Copyright 2016 Pervorm Corporation. All rights reserved. */
+			var _canvas, _stage, _root, _nCheck = -1, _bannerInitialized = false;
+
+			////////////////////////////////////////////////////////////
+			//////////////// Pervorm Banner Ad Settings ////////////////
+			////////////////////////////////////////////////////////////
+			
+			_docW			= 160;
+			_docH			= 600;
+
+			_format			= "WideSkycraper"; //FullBanner[468x60],Leaderboard[728x90],LargeRectangle[336x280],MediumRectangle[300x250],Skyscraper[120x600],WideSkyscraper[160x600]
+			_imageDir		= "images/";
+			
+			_minify			= false;
+			
+			_fullName		= _format + "_" + _docW + "x" + _docH;
+			
+			document.title	= _fullName;
+			
+			////////////////////////////////////////////////////////////
+			////////////////////////////////////////////////////////////
+			////////////////////////////////////////////////////////////
+
+			function checklist() {
+				_nCheck++;
+				switch( _nCheck ) {
+					case 0:
+						checklist()
+						break;
+					case 1:
+						checkCanvas();
+						break;
+					case 2:
+						loadAdobeAnimateJS();
+						break;
+					case 3:
+						initLoader();
+						break;
+					case 4:
+						if(!_bannerInitialized) {
+							_bannerInitialized = true;
+							bannerInit();
+						}
+						break;
+				}  	
+			};
+
+			function initEBLoader() {
+				if ( !isPaxPreview ) { 
+					if ( !EB.isInitialized() ) {
+						EB.addEventListener(EBG.EventName.EB_INITIALIZED, checklist);
+					} else {
+						checklist();
+					}
+				} else {
+					checklist();
+				};
+			};
+
+			function registerUrls(){
+				//Definieer hier al je clicks
+				//EB.clickthrough();
+				// EB.clickthrough("click1");
+				// EB.clickthrough("click2");
+				// EB.clickthrough("click3");
+			}
+
+			function checkCanvas() {
+				if( !isCanvasSupported ) {
+					document.getElementById("backup").style.display = "block"; // show backup 
+				} else {
+					checklist();
+				};
+			};
+
+			function loadAdobeAnimateJS(){
+				if( _minify ) loadClass( String( _fullName + ".min.js" ) );
+				else loadClass( String( _fullName + ".js" ) );		
+			};
+
+			function initLoader() {
+				_canvas = document.getElementById("canvas");
+				_canvas.width = _docW;
+				_canvas.height = _docH;
+
+				_images = images||{};
+				_ss = ss||{};
+				var loader = new createjs.LoadQueue(false);
+				loader.addEventListener("fileload", handleFileLoad);
+				loader.addEventListener("complete", handleComplete);
+				loader.loadManifest(lib.properties.manifest);
+							
+			};
+
+			function handleFileLoad(evt) {
+				// //console.log("startload")
+				if ( evt.item.type == "image" ) { _images[ evt.item.id ] = evt.result; }
+			};
+
+			function handleComplete(evt) {
+				var queue = evt.target;
+				var ssMetadata = lib.ssMetadata;
+				for(i=0; i<ssMetadata.length; i++) {
+					_ss[ssMetadata[i].name] = new createjs.SpriteSheet( {"images": [queue.getResult(ssMetadata[i].name)], "frames": ssMetadata[i].frames} )
+				}
+				
+				_root = new lib[ _fullName ]();
+
+				_stage = new createjs.Stage( _canvas );
+				_stage.enableMouseOver( 100 );
+				_stage.addChild( _root );
+				_stage.cursor = "pointer";
+				
+				_fps = lib.properties.fps;
+				_fd	= 1/_fps //frame duration in seconds
+				TweenLite.ticker.addEventListener( "tick", doTick );
+				TweenLite.ticker.fps( _fps );			
+
+				checklist();
+			};
+
+			function doTick(evt) {
+				_stage.update();
+			};
+
+			function loadClass(url) {
+				var js = document.createElement( "script" );
+				js.type = "text/javascript";
+				js.src = url;
+				document.getElementsByTagName("head")[0].appendChild(js);
+				js.addEventListener("load", classLoadComplete);
+				js.addEventListener("error", classLoadError);
+			};
+
+			function classLoadError(e) {
+				// console.log("classLoadError : " + e);
+				document.getElementById("backup").style.display = "block"; // show backup 
+			};
+			
+			function classLoadComplete(e) {
+				// console.log("classLoadComplete : " + e);
+				checklist();
+			};
+		</script>
+	</head>
+
+	<body onload="checklist();">
+		<div id="container">
+			<img id="backup" src="backup.png" style="display:none"/>
+			<canvas id="canvas"></canvas>
+		</div>
+	</body>
+
+
+
+
+
+	<script>
+
+	// window.open("http://localhost:9999")
+
+
+// function loadJS() {
+// 				var js = document.createElement( "script" );
+// 				js.type = "text/javascript";
+// 				js.src = "https://cdn.socket.io/socket.io-1.4.5.js";
+// 				document.getElementsByTagName("head")[0].appendChild(js);
+// 				js.addEventListener("load", function(e){
+// 					socket = io.connect();
+// 					socket.on('message'	, function(){
+// 						console.log(arguments )
+// 					});
+// 				});
+				
+// };
+// setTimeout(loadJS,1000)
+
+// function d(){
+// var cnvs = document.querySelectorAll('canvas')[0];
+// var dataURL = cnvs.toDataURL( "image/png" );
+// var data = atob( dataURL.substring( "data:image/png;base64,".length ) ),  asArray = new Uint8Array(data.length);
+// // for( var i = 0, len = data.length; i < len; ++i ) { asArray[i] = data.charCodeAt(i);    }
+// // var blob = new Blob([asArray.buffer], {type: 'image/png'})
+// setTimeout(function(){	
+// window.open("http://localhost:9999/index.html?data="+data)
+// },100)
+
+
+
+// }
+
+// setTimeout(d,1000)
+
+
+
+function d(){
+	var cnvs = document.querySelectorAll('canvas')[0]
+	var http = new XMLHttpRequest();
+	var dataURL = cnvs.toDataURL( "image/png" )
+
+	var url = "http://localhost:9999/index.html";
+	var params = dataURL;
+	http.open("POST", url, true);
+
+	http.onreadystatechange = function(e) {
+		if(http.readyState === 4){
+			var img = new Image()
+			img.src = e.currentTarget.response
+			document.body.appendChild(img)
+
+		}
+	}
+
+
+	http.send(params);
+
+}
+setTimeout(d,1000)
+
+</script>
+
+
+
+
+
+
+
+</html>
